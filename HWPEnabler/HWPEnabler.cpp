@@ -13,8 +13,6 @@ bool HWPEnabler::init (OSDictionary *dict)
     
     if (rdmsr64(MSR_IA32_PM_ENABLE) == 0)
     {
-        
-        
     }
     
     return(res);
@@ -32,6 +30,14 @@ void HWPEnabler::free ()
 bool HWPEnabler::start (IOService *provider)
 {
     bool res = super::start (provider);
+	
+	if (!res)
+		return false;
+	
+	PMinit();
+	
+	provider->joinPMtree(this);
+	registerPowerDriver(this, gPowerStates, kNumPowerStates);
     
     registerService();
     IOLog ("HWPEnabler: Starting...\n");
@@ -65,6 +71,8 @@ bool HWPEnabler::start (IOService *provider)
 void HWPEnabler::stop (IOService *provider)
 {
     IOLog ("HWPEnabler: Stopping...\n");
+	
+	PMstop();
     
     super::stop (provider);
 }
@@ -227,6 +235,32 @@ void HWPEnabler::closeChild(HWPEnablerUserClient *ptr)
     }
     mClientPtr[mClientCount+1] = NULL;
 }
+
+IOReturn HWPEnabler::setPowerState(unsigned long state, IOService *whatDevice) {
+#ifdef  DEBUG
+	IOLog("HWPEnabler: Changing power state to %lu\n", state);
+#endif
+	
+	if (state == kOffPowerState)
+	{
+#ifdef  DEBUG
+		IOLog("HWPEnabler: Going to Sleep!\n");
+#endif
+	}
+	else
+	{
+#ifdef  DEBUG
+		IOLog("HWPEnabler: Waking from Sleep!\n");
+#endif
+		if (rdmsr64(MSR_IA32_PM_ENABLE) != 1)
+		{
+			wrmsr64(MSR_IA32_PM_ENABLE, 0x1);
+		}
+	}
+	
+	return kIOPMAckImplied;
+}
+
 
 #undef  super
 #define super IOUserClient

@@ -21,6 +21,8 @@
 #define MSR_IA32_HWP_REQUEST        0x774
 #define MSR_IA32_HWP_STATUS         0x777
 
+#define kIOPMPowerOff               0
+
 #define kMethodObjectUserClient ((IOService*) 0 )
 
 enum {
@@ -35,23 +37,37 @@ typedef struct {
     UInt64 param;
 } inout;
 
+enum
+{
+	kOffPowerState,
+	kOnPowerState,
+	kNumPowerStates
+};
+
+static IOPMPowerState gPowerStates[kNumPowerStates] =
+{
+	{kIOPMPowerStateVersion1, kIOPMPowerOff, kIOPMPowerOff, kIOPMPowerOff, 0, 0, 0, 0, 0, 0, 0, 0},	// kOffPowerState
+	{kIOPMPowerStateVersion1, kIOPMPowerOn, kIOPMPowerOn, kIOPMPowerOn, 0, 0, 0, 0, 0, 0, 0, 0}		// kOnPowerState
+};
+
 class HWPEnablerUserClient;
 
 class HWPEnabler : public IOService
 {
     OSDeclareDefaultStructors(HWPEnabler)
 public:
-    virtual bool init(OSDictionary *dictionary = 0);
-    virtual void free(void);
-    virtual bool start(IOService *provider);
-    virtual void stop(IOService *provider);
+    virtual bool init(OSDictionary *dictionary = 0) override;
+    virtual void free(void) override;
+    virtual bool start(IOService *provider) override;
+    virtual void stop(IOService *provider) override;
     virtual uint64_t a_rdmsr(uint32_t msr);
     virtual void a_wrmsr(uint32_t msr, uint64_t value);
     virtual IOReturn runAction(UInt32 action, UInt32 *outSize, void **outData, void *extraArg);
     
-    virtual IOReturn newUserClient(task_t owningTask, void * securityID, UInt32 type, IOUserClient ** handler);
+    virtual IOReturn newUserClient(task_t owningTask, void * securityID, UInt32 type, IOUserClient ** handler) override;
     virtual void setErr(bool set);
     virtual void closeChild(HWPEnablerUserClient *ptr);
+	virtual IOReturn setPowerState(unsigned long state, IOService *whatDevice) override;
     
     size_t mPrefPanelMemoryBufSize;
     uint32_t mPrefPanelMemoryBuf[2];
@@ -74,22 +90,22 @@ public:
     
     static const HWPEnablerUserClient *withTask(task_t owningTask);
     
-    virtual void free();
-    virtual bool start(IOService *provider);
-    virtual void stop(IOService *provider);
+    virtual void free() override;
+    virtual bool start(IOService *provider) override;
+    virtual void stop(IOService *provider) override;
     
-    virtual bool initWithTask(task_t owningTask, void *securityID, UInt32 type, OSDictionary *properties);
-    virtual IOReturn clientClose();
-    virtual IOReturn clientDied();
-    virtual bool set_Q_Size(UInt32 capacity);
+    virtual bool initWithTask(task_t owningTask, void *securityID, UInt32 type, OSDictionary *properties) override;
+    virtual IOReturn clientClose() override;
+    virtual IOReturn clientDied() override;
+	virtual bool set_Q_Size(UInt32 capacity);
     
-    virtual bool willTerminate(IOService *provider, IOOptionBits options);
-    virtual bool didTerminate(IOService *provider, IOOptionBits options, bool *defer);
-    virtual bool terminate(IOOptionBits options = 0);
+    virtual bool willTerminate(IOService *provider, IOOptionBits options) override;
+    virtual bool didTerminate(IOService *provider, IOOptionBits options, bool *defer) override;;
+    virtual bool terminate(IOOptionBits options = 0) override;
     
-    virtual IOExternalMethod *getTargetAndMethodForIndex(IOService **targetP, UInt32 index);
+    virtual IOExternalMethod *getTargetAndMethodForIndex(IOService **targetP, UInt32 index) override;
     
-    virtual IOReturn clientMemoryForType(UInt32 type, IOOptionBits *options, IOMemoryDescriptor **memory);
+    virtual IOReturn clientMemoryForType(UInt32 type, IOOptionBits *options, IOMemoryDescriptor **memory) override;
     
     virtual IOReturn actionMethodRDMSR(UInt32 *dataIn, UInt32 *dataOut, IOByteCount inputSize, IOByteCount *outputSize);
     virtual IOReturn actionMethodWRMSR(UInt32 *dataIn, UInt32 *dataOut, IOByteCount inputSize, IOByteCount *outputSize);

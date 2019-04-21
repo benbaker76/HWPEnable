@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>IOKitPersonalities</key>
 	<dict>
 		<key>HWPEnabler</key>
@@ -50,14 +50,14 @@
 	<dict>
 		<key>com.apple.kpi.bsd</key>
 		<string>10.4</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>10.4</string>
 		<key>com.apple.kpi.libkern</key>
 		<string>10.4</string>
 		<key>com.apple.kpi.mach</key>
 		<string>10.4</string>
 		<key>com.apple.kpi.unsupported</key>
 		<string>10.5</string>
-		<key>com.apple.kpi.iokit</key>
-		<string>10.4</string>
 	</dict>
 	<key>OSBundleRequired</key>
 	<string>Root</string>
